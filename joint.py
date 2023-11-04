@@ -27,8 +27,8 @@ def speech(text):
     # engine.runAndWait()
 
 cap = cv2.VideoCapture(0)
-cap.set(3, 1280)
-cap.set(4, 720)
+cap.set(3, 1280) # use as mid points
+cap.set(4, 720)  # use as mid points
 
 model = YOLO('../YOLO Weights/yolov8n.pt')
 
@@ -63,7 +63,8 @@ while c != 100:
         if cr_obj != pv_obj:
             print(cr_obj, pv_obj)
             for obj in cr_obj:
-                speech(obj)
+                speech(obj) 
+            #position left or right if x<0 say left, x>0 say right. 
         
     
     c +=1

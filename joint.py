@@ -69,7 +69,9 @@ def loop_b():
         results = model(img, stream=True)
         for r in results:
             pv_obj = cr_obj
-            cr_obj = []
+            cr_obj = {}
+            pre_obj = []
+
             boxes = r.boxes
             for box in boxes:
                 x1, y1, x2, y2 = box.xyxy[0]
@@ -81,19 +83,35 @@ def loop_b():
 
                 cls = box.cls[0]
                 name = classNames[int(cls)]
-                cr_obj.append(name)
+                pre_obj.append(name)
                 cvzone.putTextRect(img, f'{name} 'f'{conf}', (max(0,x1), max(35,y1)), scale = 0.5)
-
+            for obj in pre_obj:
+                if obj not in cr_obj:
+                    if 1000/2 < (x1+x2)/2:
+                        cr_obj[obj] = [0, 1]
+                    else:
+                        cr_obj[obj] = [1, 0]
+                else:
+                    if 1000/2 < (x1+x2)/2:
+                        cr_obj[obj][1] +=1
+                    else:
+                        cr_obj[obj][0] +=1
+                
             if cr_obj != pv_obj:
-                print(cr_obj, pv_obj)
                 for obj in cr_obj:
                     img_resp = requests.get(url) 
                     img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8) 
                     img = cv2.imdecode(img_arr, -1) 
                     img = imutils.resize(img, width=1000, height=1800) 
                     cv2.imshow("Android_cam", img)
-
-                    speech(obj) 
+                    if cr_obj[obj][0] ==1:
+                        speech(f"There is {cr_obj[obj][0]} {obj} on the left")
+                    if cr_obj[obj][1] ==1:
+                        speech(f"There is {cr_obj[obj][1]} {obj} on the right")
+                    if cr_obj[obj][0] > 1:
+                        speech(f"There are {cr_obj[obj][0]} {obj} on the left")
+                    else:
+                        speech(f"There are {cr_obj[obj][1]} {obj} on the right")
                 #position left or right if x<0 say left, x>0 say right. 
             
         
